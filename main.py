@@ -2,14 +2,14 @@
 import json
 import requests
 
-def main():
-    """main"""
-    school_name = input("School name?")
+
+def fetch_tables(subdomain: str) -> dict[str, dict[str, dict]]:
+    """Fetch tables from website"""
 
     def edu_rcp(endpoint: str, args: str) -> dict:
         return json.loads(
             requests.post(
-                f"https://{school_name}.edupage.org/timetable/server/{endpoint}",
+                f"https://{subdomain}.edupage.org/timetable/server/{endpoint}",
                 timeout=3000,
                 data='{"__args":' + args + ',"__gsh":"00000000"}',
             ).text
@@ -18,13 +18,18 @@ def main():
     tt_number = edu_rcp("ttviewer.js?__func=getTTViewerData", "[null,2022]")["r"][
         "regular"
     ]["default_num"]
-
-    tables = dict(
+    return dict(
         (table["id"], dict((value["id"], value) for value in table["data_rows"]))
         for table in edu_rcp(
             "regulartt.js?__func=regularttGetData", '[null,"' + tt_number + '"]'
         )["r"]["dbiAccessorRes"]["tables"]
     )
+
+
+def main():
+    """main"""
+    tables = fetch_tables(input("School subdomain?"))
+
     for c in tables["classes"].values():
         print(c["id"] + " - " + c["name"])
 
