@@ -30,10 +30,12 @@ def main():
     """main"""
     tables = fetch_tables(input("School subdomain?"))
 
-    for c in tables["classes"].values():
-        print(c["id"] + " - " + c["name"])
+    ids = []
+    for i, cll in enumerate(tables["classes"].values()):
+        ids.append(cll["id"])
+        print(f"#{i} - " + cll["name"])
 
-    class_id = "*" + input("class id?")
+    class_id = ids[int(input("class number?"))]
 
     for card, lesson in sorted(
         (
