@@ -2,25 +2,33 @@
 import json
 import requests
 
-
 def main():
     """main"""
     school_name = input("School name?")
+
+    def edu_rcp(endpoint: str, args: str) -> dict:
+        return json.loads(
+            requests.post(
+                f"https://{school_name}.edupage.org/timetable/server/{endpoint}",
+                timeout=3000,
+                data='{"__args":' + args + ',"__gsh":"00000000"}',
+            ).text
+        )
+
+    tt_number = edu_rcp("ttviewer.js?__func=getTTViewerData", "[null,2022]")["r"][
+        "regular"
+    ]["default_num"]
+
     tables = dict(
         (table["id"], dict((value["id"], value) for value in table["data_rows"]))
-        for table in json.loads(
-            requests.post(
-                f"https://{school_name}.edupage.org/timetable/server/regulartt.js?__func=regularttGetData",
-                timeout=3000,
-                data='{"__args":[null,"32"],"__gsh":"00000000"}',
-            ).text
+        for table in edu_rcp(
+            "regulartt.js?__func=regularttGetData", '[null,"' + tt_number + '"]'
         )["r"]["dbiAccessorRes"]["tables"]
     )
     for c in tables["classes"].values():
         print(c["id"] + " - " + c["name"])
 
-
-    class_id = "*"+input("class id?")
+    class_id = "*" + input("class id?")
 
     for card, lesson in sorted(
         (
